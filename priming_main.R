@@ -11,7 +11,7 @@ require(gridExtra)
 require(dplyr)
 require(lme4)
 
-plotCPBar = function(data, facetByConf=F, facetBySubs=F) {
+plotCPBar <- function(data, facetByConf=F, facetBySubs=F) {
   # function to barplot director data (percentage of DO utterances)
   # data = df of DO percentage by prime construction, target verb par, confederate and subject no
   # facetByConf produces bar plot with proportions of PO/DO split by SV/DV facetted by confederate
@@ -19,7 +19,7 @@ plotCPBar = function(data, facetByConf=F, facetBySubs=F) {
   # if both are set to True individual subject plots are grouped by confederate
   require(ggplot2)
   
-  plotBase = function(data){
+  plotBase <- function(data){
     basePlot = ggplot(data) +
       aes(x=condition, y=percentage_y, fill=colour_by) +
       stat_summary(fun.y=mean, geom='bar', position=position_dodge(), aes(width=w)) +
@@ -35,16 +35,17 @@ plotCPBar = function(data, facetByConf=F, facetBySubs=F) {
             strip.text=element_text(size=15))
   
     if (levels(data$exp)=='Exp 1') {
-      basePlot = basePlot +
+      basePlot <- basePlot +
         scale_x_discrete(breaks=c('PO','DO'),
                          labels=c('Prepositional Object','Double Object'))
     } else if (levels(data$exp)=='Exp 2') {
-      basePlot = basePlot +
-        scale_x_discrete(breaks=c('Alt-Alt','Alt-Non','Non-Alt','Non-Non'),
-                         labels=c('Alt-\nAlt','Alt-\nNon','Non-\nAlt','Non-\nNon'))
+      basePlot <- basePlot +
+        scale_x_discrete(breaks=c("Alt \u2013 Alt","Alt \u2013 Non-alt","Non-alt \u2013 Alt","Non-alt \u2013 Non-alt"),
+                         labels=c("Alt \u2013 Alt","Alt \u2013 Non-alt","Non-alt \u2013 Alt","Non-alt \u2013 Non-alt"))
+
     } else if (levels(data$exp)=='Exp S') {
       # drop legend if it's Stevie's data!
-      basePlot = basePlot + theme(legend.position = "none")
+      basePlot <- basePlot + theme(legend.position = "none")
     }
     
     return(basePlot)
@@ -75,20 +76,20 @@ plotCPBar = function(data, facetByConf=F, facetBySubs=F) {
   }
 }
 
-plotCPDot = function(data, showPptDots=F) {
+plotCPDot <- function(data, showPptDots=F) {
   # function to dotplot director data (percentage of DO utterances)
   # data = df of DO percentage by prime construction, target verb par, confederate and subject no
   # showPptDots shows data points for each individual participant
   require(ggplot2)
   
-  thePlot = ggplot(data) +
+  thePlot <- ggplot(data) +
     aes(x=condition, y=percentage_y, fill=colour_by) +
     stat_summary(fun.data=mean_se, geom='errorbar', position=position_dodge(width=.9), width=.2, size=.8,
                  aes(x=condition, y=percentage_y, colour=colour_by)) +
     scale_colour_manual(values=c("black","black"), guide="none") +
     stat_summary(fun.y=mean, geom='point', position=position_dodge(width=.9), size=4, shape=21, stroke=1.4,
                  aes(x=condition, y=percentage_y, fill=colour_by)) +
-    scale_fill_manual(values=c("royalblue","orange"), 
+    scale_fill_manual(values=c("orange2","royalblue3"), 
                       labels=c("Same verb","Different verb"),
                       name="Target verb parity") +
     facet_wrap(~confederate) +
@@ -96,29 +97,32 @@ plotCPDot = function(data, showPptDots=F) {
           axis.title=element_text(size=15),
           legend.text=element_text(size=12),
           legend.title=element_text(size=15),
-          strip.text=element_text(size=15))
+          strip.text=element_text(size=15),
+          
+          panel.background=element_rect(fill="gray97",
+                                        colour="gray97"))
   
   if (showPptDots == T) {
-    thePlot = thePlot +
-      geom_dotplot(binwidth=1, dotsize=1.1, stackdir="center", binaxis="y", stackratio=1.2, position="dodge", alpha=.4)
+    thePlot <- thePlot +
+      geom_dotplot(binwidth=1, dotsize=1.2, stackdir="center", binaxis="y", stackratio=1.3, position="dodge", alpha=.4)
   }
   
   
   if (levels(data$exp)=='Exp S') {
     # drop legend if it's Stevie's data!
-    thePlot = thePlot + theme(legend.position = "none")
+    thePlot <- thePlot + theme(legend.position = "none")
   }
   
   return(thePlot)
 }
 
-plotCPCompDot = function(data, showPptDots=F) {
+plotCPCompDot <- function(data, showPptDots=F) {
   # function to dotplot director data (percentage of DO utterances)
   # data = df of DO percentage by confederate and exp (1/2)
   # showPptDots shows data points for each individual participant
   require(ggplot2)
   
-  thePlot = ggplot(data) +
+  thePlot <- ggplot(data) +
     aes(x=confederate, y=percentage_y, fill=confederate) +
     stat_summary(fun.data=mean_se, geom='errorbar', position=position_dodge(width=.9), width=.2, size=.8,
                  aes(x=confederate, y=percentage_y, colour=confederate)) +
@@ -133,23 +137,26 @@ plotCPCompDot = function(data, showPptDots=F) {
           axis.title=element_text(size=15),
           legend.text=element_text(size=12),
           legend.title=element_text(size=15),
-          strip.text=element_text(size=15))
+          strip.text=element_text(size=15),
+          
+          panel.background=element_rect(fill="gray97",
+                                        colour="gray97"))
   
   if (showPptDots == T) {
-    thePlot = thePlot +
-      geom_dotplot(binwidth=1, dotsize=1.1, stackdir="center", binaxis="y", stackratio=1.2, position="dodge", alpha=.4) +
+    thePlot <- thePlot +
+      geom_dotplot(binwidth=1, dotsize=1.2, stackdir="center", binaxis="y", stackratio=1.3, position="dodge", alpha=.4) +
       ylim(0,100)
   }
   
   print(thePlot)
 }
 
-plotCPCompBar = function(data) {
+plotCPCompBar <- function(data) {
   # function to barplot director data (percentage of DO utterances)
   # data = df of DO percentage by confederate and exp (1/2)
   require(ggplot2)
   
-  thePlot = ggplot(data) +
+  thePlot <- ggplot(data) +
     aes(x=confederate, y=percentage_y, fill=confederate) +
     stat_summary(fun.y=mean, geom='bar', position=position_dodge(), aes(width=.8)) +
     scale_fill_manual(values=c('firebrick1','gray45')) +

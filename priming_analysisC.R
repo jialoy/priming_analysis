@@ -36,10 +36,15 @@ exp2 <- data.p2.dir.valid %>%
 
 expC <- rbind(exp1, exp2) 
 
+expC %<>%
+  filter(!is.na(isDO) & primeConstruction=='DO' & primeVerbType=='alt' & targetVerbType=='alt') %>%
+  mutate(subjectNo=factor(subjectNo),
+         confederateID=factor(confederateID)) %>%
+  mutate_at(vars(exp,targetVerbPar), .funs = funs(cod=simple_scale(.))) %>%
+  data.frame() 
+
 # df for plotting
 expC_plotting<- expC %>%
-  filter(!(is.na(isDO))) %>%
-  filter(primeConstruction=='DO' & primeVerbType=='alt' & targetVerbType=='alt') %>%
   mutate(subjectNo=factor(subjectNo)) %>%
   group_by(subjectNo,confederate,exp) %>%
   summarise(sum(isDO)/sum(isValid) * 100) %>%
@@ -57,29 +62,23 @@ expC_plotting %>% plotCPCompDot(T)
 ### descriptive stats ###################
 #########################################
 
-desc.stats.C<-
-  expC %>%
+## mean pct of DO utterances produced by condition
+expC %>%
   group_by(subjectNo, exp, targetVerbPar, confederate) %>%
   summarise(sum(isDO)/sum(isValid)*100) %>%
-  data.frame() %>%
-  rename_(prop_DO=names(.)[5])
+  rename_at(vars(starts_with("sum")), ~"pct") %>%
+  group_by(exp, confederate) %>%
+  summarise_each(funs(mean, se), pct)
 
-with(desc.stats.C[desc.stats.C$exp=='Exp 1' & 
-                    desc.stats.C$confederate=='native' & 
-                    desc.stats.C$targetVerbPar=='SV',], 
-     mean(prop_DO, na.rm=T))
-
+## count by variable
+expC %>%
+  group_by(exp) %>%
+  tally(isDO==1)
 
 #########################################
 ### construct models ####################
 #########################################
 
-expC %<>%
-  filter(!is.na(isDO) & primeConstruction=='DO' & primeVerbType=='alt' & targetVerbType=='alt') %>%
-  mutate(subjectNo=factor(subjectNo),
-         confederateID=factor(confederateID)) %>%
-  mutate_at(vars(exp,targetVerbPar), .funs = funs(cod=simple_scale(.))) %>%
-  data.frame() 
 
 
 with(expC,

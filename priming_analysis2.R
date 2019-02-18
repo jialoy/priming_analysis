@@ -42,16 +42,22 @@ data.p2.dir.valid %<>%
          targetVerbPar = forcats::fct_relevel(targetVerbPar, c('SV', 'DV'))) %>%
   mutate_at(vars(primeType,targetVerbType,targetVerbPar,confederate), .funs = funs(cod=simple_scale(.)))
 
-
 data.p2.dir %<>%
   mutate(confederate = forcats::fct_relevel(confederate, c('native', 'nonnative')),
          confederateID = forcats::fct_relevel(confederateID, c('CN1', 'CN2', 'CNN1', 'CNN2')),
          targetVerbPar = forcats::fct_relevel(targetVerbPar, c('SV', 'DV'))) %>%
   mutate_at(vars(primeType,targetVerbType,targetVerbPar,confederate), .funs = funs(cod=simple_scale(.))) 
 
+data.p2.match.valid %<>%
+  mutate(confederate = forcats::fct_relevel(confederate, c('native', 'nonnative')),
+         targetVerbPar = forcats::fct_relevel(targetVerbPar, c('SV', 'DV'))) %>%
+  mutate_at(vars(primeType,targetVerbType,targetVerbPar,confederate), .funs = funs(cod=simple_scale(.)))
 
-## descriptive stats (mean proportion of DO utterances produced by condition)
+#########################################
+### descriptive stats ###################
+#########################################
 
+## mean pct of DO utterances produced by condition
 data.p2.dir.valid %>%
   group_by(subjectNo, primeType, targetVerbType, targetVerbPar, confederate) %>%
   summarise(sum(isDO)/sum(isValid)*100) %>%
@@ -59,15 +65,17 @@ data.p2.dir.valid %>%
   group_by(primeType, targetVerbType, targetVerbPar, confederate) %>%
   summarise_each(funs(mean, se), pct)
 
+## count by variable
 data.p2.dir.valid %>%
-  mutate(subjectNo=factor(subjectNo)) %>%
-  group_by(subjectNo, confederate) %>%
-  tally(isDO==1) 
+  #group_by(subjectNo) %>%
+  group_by(targetVerbType, confederate) %>%
+  tally(isDO==1)
 
 data.p2.dir.valid %>%
   group_by(confederate) %>%
   summarise(n=n_distinct(subjectNo))
 
+## mean pct of correct match responses by condition
 data.p2.match.valid %>%
   group_by(subjectNo, primeType, targetVerbType, targetVerbPar, confederate) %>%
   summarise(sum(matchCorr)/sum(isValid)*100) %>%
@@ -86,26 +94,26 @@ data.p2.dir.plot <- data.p2.dir.valid %>%
   mutate(subjectNo=factor(subjectNo)) %>%
   mutate(targetVerbPar=forcats::fct_relevel(targetVerbPar, c('SV', 'DV'))) %>%
   mutate(confederate=forcats::fct_relevel(confederate, c('native', 'nonnative'))) %>%
-  mutate(primeType=factor(primeType, labels=c("Alt", "Non"))) %>%
-  mutate(targetVerbType=factor(targetVerbType, labels=c("Alt", "Non"))) %>%
+  mutate(primeType=factor(primeType, labels=c("Alt", "Non-alt"))) %>%
+  mutate(targetVerbType=factor(targetVerbType, labels=c("Alt", "Non-alt"))) %>%
   group_by(subjectNo,confederate,primeType,targetVerbType,targetVerbPar) %>%
   summarise(sum(isDO)/sum(isValid)*100) %>% 
   rename("colour_by"=targetVerbPar) %>%
   rename_at(vars(starts_with("sum")), ~"percentage_y") %>%
-  tidyr::unite(condition, primeType:targetVerbType, sep="-") %>% 
+  tidyr::unite(condition, primeType:targetVerbType, sep=" \u2013 ") %>% 
   mutate_at(vars(condition), funs(factor)) %>% 
   mutate(condition = forcats::fct_relevel(condition, 
-                                          c("Alt-Alt","Alt-Non","Non-Alt","Non-Non"))) %>%
-  mutate(w = ifelse(condition %in% c('Alt-Alt', 'Non-Non'),0.8,0.4)) %>%
+                                          c("Alt \u2013 Alt","Alt \u2013 Non-alt","Non-alt \u2013 Alt","Non-alt \u2013 Non-alt"))) %>%
+  mutate(w = ifelse(condition %in% c('Alt \u2013 Alt', 'Non-alt \u2013 Non-alt'),0.8,0.4)) %>%
   mutate(exp=factor('Exp 2'))  # create a column with exp variable because plotting function uses it
 
 # bar plots
-data.p2.dir.plot %>% plotCPBar(T,F) +
-  xlab("Prime-target construction") + ylab("Percentage of DO descriptions produced")
+data.p2.dir.plot %>% plotCPBar(F,F) +
+  xlab("Prime \u2013 target construction") + ylab("Percentage of DO descriptions produced")
 
 # dot plots
 data.p2.dir.plot %>% plotCPDot(T) + 
-  xlab("Prime-target construction") + ylab("Percentage of DO descriptions produced")
+  xlab("Prime \u2013 target construction") + ylab("Percentage of DO descriptions produced")
 
 ## df to use for plotting match data
 
@@ -113,15 +121,15 @@ data.p2.match.plot <- data.p2.match.valid %>%
   mutate(subjectNo=factor(subjectNo)) %>%
   mutate(targetVerbPar=forcats::fct_relevel(targetVerbPar, c('SV', 'DV'))) %>%
   mutate(confederate=forcats::fct_relevel(confederate, c('native', 'nonnative'))) %>%
-  mutate(primeType=factor(primeType, labels=c("Alt", "Non"))) %>%
-  mutate(targetVerbType=factor(targetVerbType, labels=c("Alt", "Non"))) %>%
+  mutate(primeType=factor(primeType, labels=c("Alt", "Non-alt"))) %>%
+  mutate(targetVerbType=factor(targetVerbType, labels=c("Alt", "Non-alt"))) %>%
   group_by(subjectNo,confederate,primeType,targetVerbType,targetVerbPar) %>%
   summarise(sum(matchCorr)/sum(isValid)*100) %>% 
-  tidyr::unite(condition, primeType:targetVerbType, sep="-") %>% 
+  tidyr::unite(condition, primeType:targetVerbType, sep=" \u2013 ") %>% 
   mutate_at(vars(condition), funs(factor)) %>% 
   mutate(condition = forcats::fct_relevel(condition, 
-                                          c("Alt-Alt","Alt-Non","Non-Alt","Non-Non"))) %>%
-  mutate(w = ifelse(condition %in% c('Alt-Alt', 'Non-Non'),0.8,0.4)) %>%
+                                          c("Alt \u2013 Alt","Alt \u2013 Non-alt","Non-alt \u2013 Alt","Non-alt \u2013 Non-alt"))) %>%
+  mutate(w = ifelse(condition %in% c('Alt \u2013 Alt', 'Non-alt \u2013 Non-alt'),0.8,0.4)) %>%
   mutate(exp=factor('Exp 2')) %>%
   rename_at(vars(c(targetVerbPar,starts_with("sum"))), ~c("colour_by","percentage_y"))
 
@@ -177,7 +185,7 @@ data.p2.dir.valid %>%
   rename_at(vars(starts_with("sum")), ~"percentage_DO") %>%
   ggplot() +
   aes(x=confederateID, y=percentage_DO) +
-  stat_summary(fun.y=mean, geom='bar', position=position_dodge(width=.9)) +
+  stat_summary(fun.y=mean, geom='point', position=position_dodge(width=.9)) +
   stat_summary(fun.data=mean_se, geom='errorbar', position=position_dodge(width=.9), width=.3)
 
 with(data.p2.dir.valid,
@@ -195,7 +203,7 @@ with(data.p2.dir.valid,
 
 with(data.p2.dir.valid, 
   glmer(as.factor(isDO)~primeType_cod*targetVerbType_cod*targetVerbPar_cod*confederate+
-                                  (1+primeType_cod+targetVerbType_cod+targetVerbPar_cod|subjectNo)+
+                                  (1+primeType+targetVerbType+targetVerbPar|subjectNo)+
                                   (1|confederateID)+
                                   (1|targetVerb), 
                                 family='binomial',
@@ -203,10 +211,32 @@ with(data.p2.dir.valid,
 
 
 # three way interaction:
+data.p2.dir.valid %>%
+  group_by(primeType) %>%
+  tally(isDO==1)
 #-> less likely to produce a DO description following non-A (ungrammatical) primes
-#-> smaller likelihood of producing a DO description following an ungrammatical prime is smaller when prime and target verb are different (DV)
-#-> smaller likelihood of producing a DO description following an ungrammatical prime in DV condition is greater 
-# when interacting with a nn confederate
+#--> i.e. less ungrammatical priming
+
+data.p2.dir.valid %>%
+  group_by(primeType,targetVerbPar) %>%
+  tally(isDO==1) %>%
+  tidyr::spread(primeType,n) %>%
+  mutate(count=non-alt)
+#-> decreased likelihood of producing a DO description following an ungrammatical prime is smaller when prime and target verb are different (DV)
+#--> i.e. less ungrammatical different-verb priming
+
+data.p2.dir.valid %>%
+  group_by(primeType,targetVerbPar,confederate) %>%
+  tally(isDO==1)
+#-> decreased likelihood of producing a DO description following an ungrammatical prime in DV condition is greater 
+# when interacting with a nonnative compared to native confederate
+data.p2.dir.valid %>%
+  group_by(primeType,targetVerbPar,confederate) %>%
+  tally(isDO==1) %>%
+  tidyr::spread(primeType,n) %>%
+  mutate(count=non-alt)
+# final column (count) is the decrease in amount of DO target descriptions 
+# following an ungrammatical (compared to grammatical) prime
 
 # plot random effects to see if anything weird's going on
 with(data.p2.dir.valid, 
@@ -220,7 +250,13 @@ with(data.p2.dir.valid,
   lattice::dotplot(condVar=TRUE)
 
 
+## analysis for match trials
 
+# note that a more complex model structure does not converge
+with(data.p2.match.valid, glmer(matchCorr~primeType_cod*targetVerbType_cod*confederate+
+                                  (1|subjectNo), 
+                                family='binomial', 
+                                control=glmerControl(optimizer=c('bobyqa')))) %>% summary()
 
 
 
