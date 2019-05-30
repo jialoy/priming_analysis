@@ -87,8 +87,6 @@ data.p2.match.valid %>%
 ### produce some plots ##################
 #########################################
 
-## still learning how to pipe so these are messy eek
-
 ## df to use for plotting dir data
 data.p2.dir.plot <- data.p2.dir.valid %>%
   mutate(subjectNo=factor(subjectNo)) %>%
@@ -113,7 +111,7 @@ data.p2.dir.plot %>% plotCPBar(F,F) +
 
 # dot plots
 data.p2.dir.plot %>% plotCPDot(T) + 
-  xlab("Prime \u2013 target construction") + ylab("Percentage of DO descriptions produced")
+  xlab("\nPrime \u2013 target construction") + ylab("Percentage of DO descriptions produced")
 
 ## df to use for plotting match data
 
@@ -134,9 +132,10 @@ data.p2.match.plot <- data.p2.match.valid %>%
   rename_at(vars(c(targetVerbPar,starts_with("sum"))), ~c("colour_by","percentage_y"))
 
 # dot plots
-data.p2.match.plot %>% plotCPDot(T) + 
-  xlab("Prime-target construction") + ylab("Percentage of correct responses") +
-  ylim(0,100)
+data.p2.match.plot %>% plotCPDot(F) + 
+  xlab("\nPrime-target construction") + ylab("Percentage of correct responses") +
+  #ylim(50,100) +
+  NULL
 
 ###################################################################
 # some other ways of visualising (not sure if these are better...)
